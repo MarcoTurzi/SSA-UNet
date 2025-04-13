@@ -31,7 +31,9 @@ The dataset is already normalized using a Min-Max normalization. In order to rev
 
 Use [train_precip_lightning.py](./train_precip_lightning.py) to start the training process. After each checkpoints are generated and stored in `lightning/precip_regression`. Each checkpoint name contains its validation error value, the final model will probably be one with the lowest value.
 
-![visualization](./images/image_comparisons.png)
+
+
+<img src="./images/image_comparisons.png" alt="comp" width="600"/>
 
 # Testing
 
@@ -41,8 +43,8 @@ In order to compute all the metrics for your model you first need to move `light
 
 The XAI plots can be obtained by running the cam_segmentation_precip.py and cam_segmentation_cloud_cover.py scripts. The code used was obtained at https://github.com/jacobgil/pytorch-grad-cam and adapted to our dataset and model.
 
-![cam_enc](./images/cam_encoder.png)
-![cam_dec](./images/cam_decoder.png)
+<img src="./images/cam_encoder.png" alt="cam_enc" width="700"/>
+<img src="./images/cam_decoder.png" alt="cam_dec" width="500"/>
 
 ```
 @misc{turzi2025advanced,
