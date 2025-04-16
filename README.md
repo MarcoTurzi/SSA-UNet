@@ -4,7 +4,7 @@ Code for the Paper "SSA-UNet: Advanced Precipitation Nowcasting via Channel Shuf
 
 # Requirements
 
-The following libraries are needed to run our scripts: 
+The following libraries are needed to run our scripts
 
 ```
 tqdm
