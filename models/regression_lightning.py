@@ -57,7 +57,7 @@ class UNet_base(pl.LightningModule):
         #y = y[:,-1, :,:]
         y_pred = self(x)
 
-        if self.num_classes == 1:
+        if self.n_classes == 1:
             y = y[:, -1]        
         loss = self.loss_func(y_pred.squeeze(), y)
         # logs metrics for each training_step,
@@ -69,7 +69,7 @@ class UNet_base(pl.LightningModule):
         x, y = batch
         #y = y[:,-1, :,:]
         y_pred = self(x)
-        if self.num_classes == 1:
+        if self.n_classes == 1:
             y = y[:, -1]        
         loss = self.loss_func(y_pred.squeeze(), y)
         self.log("val_loss", loss, prog_bar=True)
@@ -78,7 +78,7 @@ class UNet_base(pl.LightningModule):
         """Calculate the loss (MSE per default) on the test set normalized and denormalized."""
         x, y = batch
         y_pred = self(x)
-        if self.num_classes == 1:
+        if self.n_classes == 1:
             y = y[:, -1]        
         loss = self.loss_func(y_pred.squeeze(), y)
         factor = 47.83

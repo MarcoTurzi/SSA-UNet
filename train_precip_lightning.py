@@ -121,7 +121,7 @@ if __name__ == "__main__":
     # args.val_check_interval = 0.25
     args.num_output_images = 12
     args.n_classes = 12 
-    args.kernels_per_layer = 2
+    args.kernels_per_layer = 3
     args.use_oversampled_dataset = True
     args.dataset_folder = (
         ROOT_DIR / "data" / "precipitation" / "train_test_2016-2019_input-length_12_img-ahead_12_rain-threshhold_50.h5"
