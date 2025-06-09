@@ -38,27 +38,15 @@ def get_batch_size_and_lr(hparams):
 
 
 def train_regression(hparams):
-    if hparams.model == "UNetDSShuffle_Attention3RedV212O":
-        net = unet_regr.UNetDSShuffle_Attention3RedV212O(hparams=hparams)
-    elif hparams.model == "UNetDSShuffle_Attention4RedV26O":
-        net = unet_regr.UNetDSShuffle_Attention4RedV26O(hparams=hparams)
-    elif hparams.model == "UNetDS_Attention12":
-        net = unet_regr.UNetDS_Attention12(hparams=hparams)
-    elif hparams.model == "UNetDSShuffle_Attention8G":
-        net = unet_regr.UNetDSShuffle_Attention8G(hparams=hparams)
-    elif hparams.model == "UNetDSShuffle_Attention32FRed":
-        net = unet_regr.UNetDSShuffle_Attention32FRed(hparams=hparams)
-    elif hparams.model == "UNetDSShuffle_Attention":
-        net = unet_regr.UNetDSShuffle_Attention(hparams=hparams)
-    elif hparams.model == "UNetDSShuffle_Attention2":
-        net = unet_regr.UNetDSShuffle_Attention2(hparams=hparams)
+    if hparams.model == "SSA_UNetRed":
+        net = unet_regr.SSA_UNetRed(hparams=hparams)
     elif hparams.model == "SSA_UNet":
         net = unet_regr.SSA_UNet(hparams=hparams)
     else:
         raise NotImplementedError(f"Model '{hparams.model}' not implemented")
 
-    #default_save_path = ROOT_DIR /  "lightning" / "precip_regression"
-    default_save_path = Path('/home/mturzi/data/volume_2') /  "lightning" / "precip_regression"
+    
+    default_save_path = ROOT_DIR /  "lightning" / "precip_regression"
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=default_save_path / net.__class__.__name__,
@@ -121,15 +109,17 @@ if __name__ == "__main__":
     # args.val_check_interval = 0.25
     args.num_output_images = 12
     args.n_classes = 12 
-    args.kernels_per_layer = 3
     args.use_oversampled_dataset = True
     args.dataset_folder = (
         ROOT_DIR / "data" / "precipitation" / "train_test_2016-2019_input-length_12_img-ahead_12_rain-threshhold_50.h5"
     )
-    args.resume_from_checkpoint = 'C:\\home\\mturzi\\data\\volume_2\\lightning\\precip_regression\\UNetDS_Attention12\\UNetDS_Attention12_rain_threshhold_50_epoch=20-val_loss=3.598604.ckpt'
+    args.resume_from_checkpoint = None
 
-    for m in ["SSA_UNet", ]:
+    for m, kd, ku in [("SSA_UNetRed", 2, 2), ("SSA_UNet", 3, 2) ]:
         args.model = m
+        args.kernels_per_layer = kd
+        args.kernels_per_layer_up = ku
+        
         train_regression(args)
     #train_regression(args)
     pathlib.PosixPath = temp

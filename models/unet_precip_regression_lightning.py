@@ -16,26 +16,76 @@ class SSA_UNet(Precip_regression_base):
         super(SSA_UNet, self).__init__(hparams=hparams)
         self.n_channels = self.hparams.n_channels
         self.n_classes = self.hparams.n_classes
-        self.bilinear = self.hparams.bilinear
+        self.bilinear = True
         reduction_ratio = self.hparams.reduction_ratio
         kernels_per_layer = self.hparams.kernels_per_layer
+        kernels_per_layer_up = self.hparams.kernels_per_layer_up
         pw_groups = 16
+        print(kernels_per_layer)
 
-        self.inc = DoubleShuffledConvDS(self.n_channels  , 64, kernels_per_layer=kernels_per_layer , )
+        self.inc = DoubleShuffledConvDS(self.n_channels  , 64, kernels_per_layer=kernels_per_layer  ,  )
         self.cbam1 = SA(64, groups=16)
-        self.down1 = DownShuffledDS(64, 128, kernels_per_layer=kernels_per_layer , pw_groups=pw_groups)
+        self.down1 = DownShuffledDS(64, 128, kernels_per_layer=kernels_per_layer  , pw_groups=16)
         self.cbam2 = SA(128, groups=32)
-        self.down2 = DownShuffledDS(128, 256, kernels_per_layer=kernels_per_layer , pw_groups=pw_groups)
+        self.down2 = DownShuffledDS(128, 256, kernels_per_layer=kernels_per_layer , pw_groups=16)
         self.cbam3 = SA(256)
-        self.down3 = DownShuffledDS(256, 512, kernels_per_layer=kernels_per_layer , pw_groups=pw_groups*2)
+        self.down3 = DownShuffledDS(256, 512, kernels_per_layer=kernels_per_layer , pw_groups=32)
         self.cbam4 = SA(512)
         factor = 2 if self.bilinear else 1
-        self.down4 = DownShuffledDS(512, 1024 // factor, kernels_per_layer=kernels_per_layer , pw_groups=pw_groups*2)
+        self.down4 = DownShuffledDS(512, 1024 // factor, kernels_per_layer=kernels_per_layer  , pw_groups=32)
         self.cbam5 = SA(1024 // factor)
-        self.up1 = UpDS(1024, 512 // factor, self.bilinear, kernels_per_layer=kernels_per_layer, )
-        self.up2 = UpDS(512, 256 // factor, self.bilinear, kernels_per_layer=kernels_per_layer, )
-        self.up3 = UpDS(256, 128 // factor, self.bilinear, kernels_per_layer=kernels_per_layer,)
-        self.up4 = UpDS(128, 64, self.bilinear, kernels_per_layer=kernels_per_layer, )
+        self.up1 = UpDS(1024, 512 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
+        self.up2 = UpDS(512, 256 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
+        self.up3 = UpDS(256, 128 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up,)
+        self.up4 = UpDS(128, 64, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
+
+        self.outc = OutConv(64, self.n_classes)
+
+    def forward(self, x):
+        x1 = self.inc(x)
+        x1Att = self.cbam1(x1)
+        x2 = self.down1(x1Att)
+        x2Att = self.cbam2(x2)
+        x3 = self.down2(x2Att)
+        x3Att = self.cbam3(x3)
+        x4 = self.down3(x3Att)
+        x4Att = self.cbam4(x4)
+        x5 = self.down4(x4Att)
+        x5Att = self.cbam5(x5)
+        x = self.up1(x5Att, x4Att)
+        x = self.up2(x, x3Att)
+        x = self.up3(x, x2Att)
+        x = self.up4(x, x1Att)
+        logits = self.outc(x)
+        return logits
+    
+class SSA_UNetRed(Precip_regression_base):
+    def __init__(self, hparams):
+        super(SSA_UNetRed, self).__init__(hparams=hparams)
+        self.n_channels = self.hparams.n_channels
+        self.n_classes = self.hparams.n_classes
+        self.bilinear = True
+        reduction_ratio = self.hparams.reduction_ratio
+        kernels_per_layer = self.hparams.kernels_per_layer
+        kernels_per_layer_up = self.hparams.kernels_per_layer_up 
+        pw_groups = 16
+        print(kernels_per_layer)
+
+        self.inc = DoubleShuffledConvDS(self.n_channels  , 64, kernels_per_layer=kernels_per_layer  ,  )
+        self.cbam1 = SA(64, groups=16)
+        self.down1 = DownShuffledDS(64, 128, kernels_per_layer=kernels_per_layer  , pw_groups=16)
+        self.cbam2 = SA(128, groups=32)
+        self.down2 = DownShuffledDS(128, 256, kernels_per_layer=kernels_per_layer , pw_groups=16)
+        self.cbam3 = SA(256)
+        self.down3 = DownShuffledDS(256, 512, kernels_per_layer=kernels_per_layer , pw_groups=32)
+        self.cbam4 = SA(512)
+        factor = 2 if self.bilinear else 1
+        self.down4 = DownShuffledDS(512, 1024 // factor, kernels_per_layer=kernels_per_layer  , pw_groups=32)
+        self.cbam5 = SA(1024 // factor)
+        self.up1 = UpDS(1024, 512 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
+        self.up2 = UpDS(512, 256 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
+        self.up3 = UpDS(256, 128 // factor, self.bilinear, kernels_per_layer=kernels_per_layer_up,)
+        self.up4 = UpDS(128, 64, self.bilinear, kernels_per_layer=kernels_per_layer_up, )
 
         self.outc = OutConv(64, self.n_classes)
 
