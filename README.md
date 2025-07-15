@@ -48,6 +48,8 @@ The XAI plots can be obtained by running the cam_segmentation_precip.py script. 
 
 ```
 @misc{turzi2025advanced,
+      doi: {10.48550/arXiv.2504.18309}
+      url: {https://doi.org/10.48550/arXiv.2504.18309}, 
       title={SSA-UNet: Advanced Precipitation Nowcasting via Channel Shuffling}, 
       author={Marco Turzi and Siamak Mehrkanoon},
       year={2025}, 
